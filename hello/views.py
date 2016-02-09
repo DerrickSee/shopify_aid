@@ -12,7 +12,7 @@ from .names import *
 
 import csv
 
-from .models import Greeting
+from .models import *
 
 # Create your views here.
 def index(request):
@@ -265,5 +265,76 @@ class GlobalBedrooms(FormView):
                                      str(price.quantize(Decimal('.01'))),
                                      str(compare.quantize(Decimal('.01'))),
                                      'TRUE', 'TRUE'])
+
+        return response
+
+
+class CoasterExcel(FormView):
+    form_class = FileForm
+    success_url = reverse_lazy('index')
+    template_name = "index.html"
+
+    def form_valid(self, form):
+        vendor, created = Vendor.objects.get_or_create(title='Coaster')
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+
+        for idx, row in enumerate(data[2:]):
+
+            product, created = Product.objects.update_or_create(
+                vendor=vendor, sku=row[0],
+                defaults={'title': row[1], 'description': row[2],
+                          'width': Decimal(row[13] or '0'),
+                          'depth': Decimal(row[14] or '0'),
+                          'height':Decimal(row[15] or '0')})
+        return super(CoasterExcel, self).form_valid(form)
+
+
+class CoasterProcess(FormView):
+    form_class = FileForm
+    success_url = reverse_lazy('index')
+    template_name = "index.html"
+
+    def form_valid(self, form):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="processed.csv"'
+        writer = csv.writer(response)
+        writer.writerow(['Handle', 'Title', 'Body (HTML)', 'Vendor', 'Type', 'Tags', 'Published', 'Option1 Name',
+                         'Option1 Value', 'Option2 Name', 'Option2 Value','Option3 Name', 'Option3 Value',
+                         'Variant SKU', 'Variant Grams', 'Variant Inventory Tracker', 'Variant Inventory Qty',
+                         'Variant Inventory Policy', 'Variant Fulfillment Service', 'Variant Price',
+                         'Variant Compare At Price', 'Variant Requires Shipping', 'Variant Taxable',
+                         'Variant Barcode', 'Image Src', 'Image Alt Text',])
+        vendor, created = Vendor.objects.get_or_create(title='Coaster')
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+
+        for idx, row in enumerate(data[1:]):
+            collection, created = Collection.objects.get_or_create(title=row[0].title())
+            product_type, created = ProductType.objects.get_or_create(title=row[2])
+            title = '%s %s' % (collection.title, row[2])
+            for idx, sku in enumerate(row[1].split(',')):
+                product = Product.objects.get(vendor=vendor, sku=sku.strip())
+                product.title = title.title()
+                product.product_type = product_type
+                product.save()
+            handle = slugify('%s-' % vendor.title + title)
+            body = product.description + "<p><strong>DIMENSIONS</strong></p>"
+            body += '<p>%s"W x %s"D x %s"H</p>'% (product.width, product.depth, product.height)
+            tags = row[4]
+            if 'fabric' not in tags and 'leather' not in tags:
+                tags += ',fabric'
+
+            tags +=',%s' % row[4]
+            colors = row[3].split(',')
+            for idx, sku in enumerate(row[1].split(',')):
+                writer.writerow([handle, title, body.encode('ascii','ignore'),
+                                 vendor.title, product.product_type.title.lower(),
+                                 tags, 'FALSE',
+                                 'Color' if len(colors) > 1 else 'Title',
+                                 colors[idx].title().strip() if len(colors) > 1 else 'Default Title',
+                                 '', '', '', '', str(sku.strip()),
+                                 '0', '', '0', 'continue', 'manual',
+                                 '0','0', 'TRUE', 'TRUE'])
 
         return response

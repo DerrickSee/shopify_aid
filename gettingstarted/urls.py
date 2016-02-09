@@ -15,4 +15,6 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     url(r'^ashley-table/$', hello.views.AshleyTableProcess.as_view(), name='ashley-table'),
     url(r'^global-u/$', hello.views.GlobalUInitialProcess.as_view(), name='global-u'),
+    url(r'^coaster/$', hello.views.CoasterExcel.as_view(), name='coaster'),
+    url(r'^coaster-p/$', hello.views.CoasterProcess.as_view(), name='coaster-process'),
 )

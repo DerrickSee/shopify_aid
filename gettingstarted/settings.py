@@ -38,7 +38,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'hello'
+    'hello',
+    'django_extensions',
+    'taggit',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -78,9 +80,11 @@ WSGI_APPLICATION = 'gettingstarted.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+        'NAME': 'shopify',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'USER': 'admin',
+        'PASSWORD': 'shopify-db-letmein'
+    },
 }
 
 # Internationalization
@@ -94,7 +98,8 @@ USE_TZ = True
 
 
 # Parse database configuration from $DATABASE_URL
-DATABASES['default'] =  dj_database_url.config()
+if not DEBUG:
+    DATABASES['default'] =  dj_database_url.config()
 
 # Enable Persistent Connections
 DATABASES['default']['CONN_MAX_AGE'] = 500
