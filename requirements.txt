@@ -6,3 +6,6 @@ whitenoise==2.0.6
 django-bootstrap3
 django-extensions
 django-taggit
+requests
+jsonfield
+django-annoying

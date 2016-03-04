@@ -11,6 +11,15 @@
 <div class="container">
   <div class="row">
     <div class="col-md-6">
+      <h3>Clean Shopify</h3>
+      <form method="post" action="{% url 'clean-shopify' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.errors }}
+        <input name="file" type="file" class="form-control">
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+    <div class="col-md-6">
       <h3>Ashley Tables</h3>
       <form method="post" action="{% url 'ashley-table' %}" enctype="multipart/form-data">
         {% csrf_token %}
@@ -47,8 +56,16 @@
       </ul>
     </div>
   </div> <!-- row -->
-   <div class="alert alert-info text-center" role="alert">
-    Please do work through the Getting Started guide, even if you do know how to build such an application.  The guide covers the basics of working with Heroku, and will familiarize you with all the concepts you need in order to build and deploy your own apps.
-  </div>
+  <table class="table">
+    <!-- {% for product in products %}
+    <tr>
+      <td>{{ product.sku }}</td>
+      <td>{{ product.title }}</td>
+      <td>{{ product.vendor }}</td>
+      <td>{{ product.cost_price }}</td>
+    </tr>
+    {% endfor %} -->
+
+  </table>
 </div>
 {% endblock %}
