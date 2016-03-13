@@ -390,7 +390,7 @@ class CoasterProcess(UploadFormView):
 
 
 def CoasterUpdate():
-    vendor = Vendor.objects.get(title='Coaster')
+    vendor, created = Vendor.objects.get_or_create(title='Coaster')
     vd, created = VendorData.objects.get_or_create(vendor=vendor, date=now().date())
     url = "http://api.coasteramer.com/api/product/GetPriceList"
     headers = {'keycode': 'ED10E97E26A24442B4526F74D7'}
@@ -399,6 +399,17 @@ def CoasterUpdate():
     vd.save()
     print 'Data saved'
 
+
+def CreateVendorProducts():
+    coaster = Vendor.objects.get(title='Coaster')
+    vd = VendorData.objects.get(date=now().date(), vendor=coaster)
+    for obj in vd.prices:
+        if obj['PriceCode'] == 'PR-2034':
+            prices = obj['PriceList']
+    for price in prices:
+        product, created = VendorProduct.objects.update_or_create(
+            vendor=coaster, sku=price['ProductNumber'], defaults={'price': Decimal(price['Price'])})
+    print 'Products updated/created'
 
 def CoasterPriceCSV(request):
     response = HttpResponse(content_type='text/csv')
@@ -458,6 +469,23 @@ class CleanShopify(UploadFormView):
                 row[6] = 'true' if row[24] else 'false'
             writer.writerow(row)
         return response
+
+
+class UploadAshley(UploadFormView):
+    def form_valid(self, form):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="processed.csv"'
+        writer = csv.writer(response)
+
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+        writer.writerow(data[0])
+        for idx, row in enumerate(data[1:]):
+            if row[1] and row[13]:
+                row[6] = 'true' if row[24] else 'false'
+            writer.writerow(row)
+        return response
+
 
 
 def UpdateUsers():

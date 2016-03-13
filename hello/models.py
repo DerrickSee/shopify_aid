@@ -1,5 +1,5 @@
 from django.db import models
-from django_extensions.db.models import TitleSlugDescriptionModel, TitleDescriptionModel
+from django_extensions.db.models import TitleSlugDescriptionModel, TitleDescriptionModel, TimeStampedModel
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from taggit.managers import TaggableManager
 from jsonfield import JSONField
@@ -26,6 +26,15 @@ class ProductType(TitleSlugDescriptionModel):
         app_label = 'hello'
 
 
+class VendorProduct(TitleDescriptionModel, TimeStampedModel):
+    vendor = models.ForeignKey(Vendor)
+    sku = models.CharField(max_length=100)
+    price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
+
+    class Meta:
+        app_label = 'hello'
+
+
 class Product(TitleDescriptionModel):
     sku = models.CharField(max_length=100)
     vendor = models.ForeignKey(Vendor)
@@ -35,7 +44,10 @@ class Product(TitleDescriptionModel):
     height = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     collection = models.ForeignKey(Collection, null=True, blank=True)
     cost_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
+    retail_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
+    sale_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     tags = TaggableManager()
+    vendor_products = models.ManyToManyField(VendorProduct)
 
     class Meta:
         app_label = 'hello'
