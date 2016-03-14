@@ -46,6 +46,7 @@ class Product(TitleDescriptionModel):
     cost_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     retail_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     sale_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
+    override_sale_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     tags = TaggableManager()
     vendor_products = models.ManyToManyField(VendorProduct)
 
