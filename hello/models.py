@@ -26,7 +26,8 @@ class ProductType(TitleSlugDescriptionModel):
         app_label = 'hello'
 
 
-class VendorProduct(TitleDescriptionModel, TimeStampedModel):
+class VendorProduct(TimeStampedModel):
+    title = models.CharField(max_length=100, blank=True)
     vendor = models.ForeignKey(Vendor)
     sku = models.CharField(max_length=100)
     price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
