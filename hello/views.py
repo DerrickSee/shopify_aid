@@ -456,11 +456,27 @@ class UpdateAshley(UploadFormView):
                 form.cleaned_data['file'].read().splitlines())]
         vendor, created = Vendor.objects.get_or_create(title="Ashley")
         for idx, row in enumerate(data[2:]):
-            product, created = VendorProduct.objects.update_or_create(
-                sku=row[0].strip(), vendor=vendor,
-                defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1]})
+            if row[0]:
+                product, created = VendorProduct.objects.update_or_create(
+                    sku=row[0].strip(), vendor=vendor,
+                    defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1]})
         messages.success(self.request, 'Data Updated.')
         return super(UpdateAshley, self).form_valid(form)
+
+
+class UpdateShopifyProducts(UploadFormView):
+    def form_valid(self, form):
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+        for idx, row in enumerate(data[1000:]):
+            if row[13]:
+                vendor, created = Vendor.objects.get_or_create(title=row[3])
+                product_type, created = ProductType.objects.get_or_create(title=row[4])
+                product, created = Product.objects.update_or_create(
+                    sku=row[13], vendor=vendor,
+                    defaults={'product_type': product_type})
+        messages.success(self.request, 'Data Updated.')
+        return super(UpdateShopifyProducts, self).form_valid(form)
 
 
 def UpdateUsers():

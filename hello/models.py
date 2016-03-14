@@ -35,6 +35,12 @@ class VendorProduct(TimeStampedModel):
     class Meta:
         app_label = 'hello'
 
+    def __string__(self):
+        title = self.sku
+        if self.title:
+            title += ' (%s)' % self.title
+        return title
+
 
 class Product(TitleDescriptionModel):
     sku = models.CharField(max_length=100)
@@ -53,6 +59,12 @@ class Product(TitleDescriptionModel):
 
     class Meta:
         app_label = 'hello'
+
+    def __string__(self):
+        title = self.sku
+        if self.title:
+            title += ' (%s)' % self.title
+        return title
 
 
 class MyUserManager(BaseUserManager):
