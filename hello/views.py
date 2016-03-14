@@ -389,28 +389,6 @@ class CoasterProcess(UploadFormView):
         return response
 
 
-def CoasterUpdate():
-    vendor, created = Vendor.objects.get_or_create(title='Coaster')
-    vd, created = VendorData.objects.get_or_create(vendor=vendor, date=now().date())
-    url = "http://api.coasteramer.com/api/product/GetPriceList"
-    headers = {'keycode': 'ED10E97E26A24442B4526F74D7'}
-    response = requests.get(url, headers=headers)
-    vd.prices = response.json()
-    vd.save()
-    print 'Data saved'
-
-
-def CreateVendorProducts():
-    coaster = Vendor.objects.get(title='Coaster')
-    vd = VendorData.objects.get(date=now().date(), vendor=coaster)
-    for obj in vd.prices:
-        if obj['PriceCode'] == 'PR-2034':
-            prices = obj['PriceList']
-    for price in prices:
-        product, created = VendorProduct.objects.update_or_create(
-            vendor=coaster, sku=price['ProductNumber'], defaults={'price': Decimal(price['Price'])})
-    print 'Products updated/created'
-
 def CoasterPriceCSV(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="processed.csv"'
