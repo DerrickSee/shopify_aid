@@ -80,20 +80,6 @@ class MyUserManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser):
-    USERNAME_FIELD = 'email'
-    email = models.EmailField(max_length=255, unique=True)
-    is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-
-    objects = MyUserManager()
-
-    class Meta:
-        app_label = 'hello'
-
-
 class VendorData(models.Model):
     products = JSONField(null=True, blank=True)
     prices = JSONField(null=True, blank=True)
