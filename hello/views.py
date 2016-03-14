@@ -11,6 +11,7 @@ from django import forms
 from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.text import slugify
 from django.utils.timezone import now
+from django.contrib import messages
 
 from annoying.functions import get_object_or_None
 
@@ -449,21 +450,17 @@ class CleanShopify(UploadFormView):
         return response
 
 
-class UploadAshley(UploadFormView):
+class UpdateAshley(UploadFormView):
     def form_valid(self, form):
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="processed.csv"'
-        writer = csv.writer(response)
-
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        writer.writerow(data[0])
-        for idx, row in enumerate(data[1:]):
-            if row[1] and row[13]:
-                row[6] = 'true' if row[24] else 'false'
-            writer.writerow(row)
-        return response
-
+        vendor, created = Vendor.objects.get_or_create(title="Ashley")
+        for idx, row in enumerate(data[2:]):
+            product, created = VendorProduct.objects.update_or_create(
+                sku=row[0].strip(), vendor=vendor,
+                defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1]})
+        messages.success(self.request, 'Data Updated.')
+        return super(UpdateAshley, self).form_valid(form)
 
 
 def UpdateUsers():

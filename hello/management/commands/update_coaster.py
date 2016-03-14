@@ -1,4 +1,5 @@
 import requests
+from decimal import Decimal
 
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.timezone import now
