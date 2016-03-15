@@ -25,6 +25,9 @@ class ProductType(TitleSlugDescriptionModel):
     class Meta:
         app_label = 'hello'
 
+    def __unicode__(self):
+        return self.title
+
 
 class VendorProduct(TimeStampedModel):
     title = models.CharField(max_length=100, blank=True)
@@ -35,7 +38,7 @@ class VendorProduct(TimeStampedModel):
     class Meta:
         app_label = 'hello'
 
-    def __string__(self):
+    def __unicode__(self):
         title = self.sku
         if self.title:
             title += ' (%s)' % self.title
@@ -60,7 +63,7 @@ class Product(TitleDescriptionModel):
     class Meta:
         app_label = 'hello'
 
-    def __string__(self):
+    def __unicode__(self):
         title = self.sku
         if self.title:
             title += ' (%s)' % self.title

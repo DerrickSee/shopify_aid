@@ -17,7 +17,7 @@ urlpatterns = patterns('',
     url(r'^coaster/$', hello.views.CoasterExcel, name='coaster'),
     url(r'^coaster-p/$', hello.views.CoasterProcess.as_view(), name='coaster-process'),
     url(r'^coaster-price-csv/$', hello.views.CoasterPriceCSV, name='coaster-price-csv'),
-    url(r'^update-shopify/$', hello.views.UpdateShopifyProducts.as_view(), name='update-shopify'),
+    url(r'^upload-shopify/$', hello.views.UploadShopify.as_view(), name='upload-shopify'),
     url(r'^clean/$', hello.views.CleanShopify.as_view(), name='clean-shopify'),
     url(r'^users/$', hello.views.ExportUsers, name='export-users'),
 )

@@ -479,11 +479,11 @@ class UploadPrices(UploadFormView):
         return super(UploadPrices, self).form_valid(form)
 
 
-class UpdateShopifyProducts(UploadFormView):
+class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[1000:]):
+        for idx, row in enumerate(data[1:]):
             if row[13]:
                 vendor, created = Vendor.objects.get_or_create(title=row[3])
                 product_type, created = ProductType.objects.get_or_create(title=row[4])
@@ -491,7 +491,7 @@ class UpdateShopifyProducts(UploadFormView):
                     sku=row[13], vendor=vendor,
                     defaults={'product_type': product_type})
         messages.success(self.request, 'Data Updated.')
-        return super(UpdateShopifyProducts, self).form_valid(form)
+        return super(UploadShopify, self).form_valid(form)
 
 
 def UpdateUsers():
