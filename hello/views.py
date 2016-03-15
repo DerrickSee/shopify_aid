@@ -397,16 +397,16 @@ def CoasterPriceCSV(request):
     writer = csv.writer(response)
     writer.writerow(['SKU', 'Cost 1', 'Cost 2',])
     coaster = Vendor.objects.get(title='Coaster')
-    vd = VendorData.objects.get(date=now().date(), vendor=coaster)
+    vd = VendorData.objects.filter(vendor=coaster).order_by('date').last()
     for obj in vd.prices:
         if obj['PriceCode'] == 'PR-2034':
             prices = obj['PriceList']
     for price in prices:
         writer.writerow([price['ProductNumber'], price['Price']])
-        product = get_object_or_None(Product, vendor=coaster, sku=price['ProductNumber'])
-        if product:
-            product.cost_price = Decimal(price['Price'])
-            product.save()
+        # product = get_object_or_None(Product, vendor=coaster, sku=price['ProductNumber'])
+        # if product:
+        #     product.cost_price = Decimal(price['Price'])
+        #     product.save()
     return response
 
 
