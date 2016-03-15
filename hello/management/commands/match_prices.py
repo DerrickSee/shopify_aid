@@ -19,7 +19,8 @@ class Command(BaseCommand):
         vendors = Vendor.objects.filter(title__in=('Ashley', 'United', 'Jonathan Louis', 'Istikbal'))
         for vendor in Vendor.objects.all():
             for product in Product.objects.filter(vendor=vendor):
-                skus = product.sku.split('+')
+                skus = product.sku.strip("'")
+                skus = skus.split('+')
                 cost_price = Decimal('0.00')
                 all_accounted = True
                 for sku in skus:

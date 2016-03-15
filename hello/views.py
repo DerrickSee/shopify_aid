@@ -488,10 +488,9 @@ class UploadShopify(UploadFormView):
             if row[13]:
                 if row[3]:
                     title = row[1]
-                    vendor, created = Vendor.objects.get_or_create(title=row[3])
                     product_type, created = ProductType.objects.get_or_create(title=row[4])
                 product, created = Product.objects.update_or_create(
-                    sku=row[13], vendor=vendor,
+                    sku=row[13], vendor__title=row[3],
                     defaults={'product_type': product_type, 'title': title})
         messages.success(self.request, 'Data Updated.')
         return super(UploadShopify, self).form_valid(form)
@@ -581,12 +580,14 @@ class UpdateShopifyPrices(UploadFormView):
         writer.writerow(data[0])
         for idx, row in enumerate(data[1:]):
             if row[13]:
-                product = get_object_or_None(Product, sku=row[13], vendor__title=row[3])
+                if row[3]:
+                    vendor = row[3]
+                product = get_object_or_None(Product, sku=row[13].strip("'"), vendor__title=vendor)
                 if product and product.retail_price:
                     row[19] = product.sale_price
                     row[20] = product.retail_price
-                elif row[3] != 'Global':
-                    row[19] = ''
-                    row[20] = ''
+                elif vendor != 'Global':
+                    row[19] = '0'
+                    row[20] = '0'
             writer.writerow(row)
         return response
