@@ -20,20 +20,28 @@ class Command(BaseCommand):
         upholstery = ProductType.objects.filter(title__in=('sofas', 'loveseats', 'accent chairs', 'sofa chairs', 'daybeds', 'living room sets', 'ottomans', 'recliners', 'sectionals', 'sofa chaises'))
         vendors = Vendor.objects.filter(title__in=('Ashley', 'United', 'Jonathan Louis', 'Istikbal'))
         vendor, created = Vendor.objects.get_or_create(title=options['vendor'])
-
+        print vendor
         for product in Product.objects.filter(vendor=vendor):
-            vp = get_object_or_None(VendorProduct, vendor=vendor, sku=product.sku)
-            if vp:
-                product.cost_price = vp.price
-                if product.product_type in upholstery and product.vendor in vendors:
-                    product.retail_price = vp.price * Decimal('3.57')
-                else:
-                    product.retail_price = vp.price * Decimal('3.25')
+            skus = product.sku.split('+')
+            for sku in skus:
+                sku = sku.split('*')
+                vp = get_object_or_None(VendorProduct, vendor=vendor, sku=sku[0])
+                try:
+                    qty = sku[1]
+                except:
+                    qty = 1
+                if vp:
+                    product.cost_price = vp.price * qty
+                    if product.product_type in upholstery and product.vendor in vendors:
+                        product.retail_price = product.cost_price * Decimal('3.57')
+                    else:
+                        product.retail_price = product.cost_price * Decimal('3.25')
 
-                sale_price = vp.price * Decimal('0.7')
-                if sale_price > 200:
-                    sale_price = math.ceil(sale_price * 2) / 2 - Decimal('0.01')
-                product.sale_price = sale_price
-                product.save()
+                    sale_price = product.retail_price * Decimal('0.7')
+                    if sale_price > 200:
+                        sale_price = math.ceil(sale_price * 2) / 2 - Decimal('0.01')
+                    product.sale_price = sale_price
+                    product.save()
+                    print 'product updated'
 
         print 'Price Matched'
