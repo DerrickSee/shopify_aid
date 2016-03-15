@@ -25,7 +25,11 @@ class Command(BaseCommand):
                 all_accounted = True
                 for sku in skus:
                     sku = sku.split('*')
-                    vp = get_object_or_None(VendorProduct, vendor=vendor, sku=sku[0])
+                    if '@' in sku[0]:
+                        ss = sku[0].split('@')
+                        vp = get_object_or_None(VendorProduct, vendor__title=ss[1], sku=ss[0])
+                    else:
+                        vp = get_object_or_None(VendorProduct, vendor=vendor, sku=sku[0])
                     try:
                         qty = sku[1]
                     except:
