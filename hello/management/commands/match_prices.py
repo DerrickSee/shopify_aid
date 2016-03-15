@@ -1,4 +1,6 @@
 import requests
+import math
+
 from decimal import Decimal
 
 from django.core.management.base import BaseCommand, CommandError
@@ -27,7 +29,11 @@ class Command(BaseCommand):
                     product.retail_price = vp.price * Decimal('3.57')
                 else:
                     product.retail_price = vp.price * Decimal('3.25')
-                product.sale_price = vp.price * Decimal('0.7')
+
+                sale_price = vp.price * Decimal('0.7')
+                if sale_price > 200:
+                    sale_price = math.ceil(sale_price * 2) / 2 - Decimal('0.01')
+                product.sale_price = sale_price
                 product.save()
 
         print 'Price Matched'
