@@ -464,6 +464,21 @@ class UpdateAshley(UploadFormView):
         return super(UpdateAshley, self).form_valid(form)
 
 
+class UploadPrices(UploadFormView):
+    def form_valid(self, form):
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+
+        vendor, created = Vendor.objects.get_or_create(title=self.request.POST.get('vendor'))
+        for idx, row in enumerate(data[1:]):
+            if row[0]:
+                product, created = VendorProduct.objects.update_or_create(
+                    sku=row[0].strip(), vendor=vendor,
+                    defaults={'price': Decimal(row[1].replace('$', ''))})
+        messages.success(self.request, 'Data Updated.')
+        return super(UploadPrices, self).form_valid(form)
+
+
 class UpdateShopifyProducts(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
