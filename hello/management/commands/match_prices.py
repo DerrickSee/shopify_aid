@@ -33,9 +33,9 @@ class Command(BaseCommand):
                 try:
                     qty = sku[1]
                 except:
-                    qty = 1
+                    qty = '1'
                 if vp:
-                    cost_price += vp.price * qty
+                    cost_price += vp.price * Decimal(qty)
                 else:
                     all_accounted = False
             if all_accounted:
