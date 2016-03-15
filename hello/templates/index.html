@@ -27,6 +27,15 @@
       </form>
     </div>
     <div class="col-md-6">
+      <h3>Update Shopify Prices</h3>
+      <form method="post" action="{% url 'update-shopify-prices' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.errors }}
+        <input name="file" type="file" class="form-control">
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+    <div class="col-md-6">
       <h3>Ashley</h3>
       <form method="post" action="{% url 'update-ashley' %}" enctype="multipart/form-data">
         {% csrf_token %}

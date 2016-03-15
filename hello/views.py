@@ -568,3 +568,25 @@ def CoasterExcel(request):
                          str(compare.quantize(Decimal('.01'))),
                          'TRUE', 'TRUE'])
     return response
+
+
+class UpdateShopifyPrices(UploadFormView):
+    def form_valid(self, form):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="processed.csv"'
+        writer = csv.writer(response)
+
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+        writer.writerow(data[0])
+        for idx, row in enumerate(data[1:]):
+            if row[13]:
+                product = get_object_or_None(Product, sku=row[13], vendor__title=row[3])
+                if product and product.retail_price:
+                    row[19] = product.sale_price
+                    row[20] = product.retail_price
+                elif row[3] != 'Global':
+                    row[19] = ''
+                    row[20] = ''
+            writer.writerow(row)
+        return response
