@@ -485,11 +485,13 @@ class UploadShopify(UploadFormView):
                 form.cleaned_data['file'].read().splitlines())]
         for idx, row in enumerate(data[1:]):
             if row[13]:
-                vendor, created = Vendor.objects.get_or_create(title=row[3])
-                product_type, created = ProductType.objects.get_or_create(title=row[4])
+                if row[3]:
+                    title = row[1]
+                    vendor, created = Vendor.objects.get_or_create(title=row[3])
+                    product_type, created = ProductType.objects.get_or_create(title=row[4])
                 product, created = Product.objects.update_or_create(
                     sku=row[13], vendor=vendor,
-                    defaults={'product_type': product_type})
+                    defaults={'product_type': product_type, 'title': title})
         messages.success(self.request, 'Data Updated.')
         return super(UploadShopify, self).form_valid(form)
 
