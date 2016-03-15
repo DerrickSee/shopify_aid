@@ -582,12 +582,30 @@ class UpdateShopifyPrices(UploadFormView):
             if row[13]:
                 if row[3]:
                     vendor = row[3]
-                product = get_object_or_None(Product, sku=row[13].strip("'"), vendor__title=vendor)
-                if product and product.retail_price:
-                    row[19] = product.sale_price
-                    row[20] = product.retail_price
-                elif vendor != 'Global':
-                    row[19] = '0'
-                    row[20] = '0'
-            writer.writerow(row)
+                # if row[19] == '0' or row[19] == '0.00':
+                #     writer.writerow([row[13], row[3]])
+                # product = get_object_or_None(Product, sku=row[13].strip("'"), vendor__title=vendor)
+                # if product and product.retail_price:
+                #     row[19] = product.sale_price
+                #     row[20] = product.retail_price
+                # elif vendor != 'Global':
+                #     row[19] = '0'
+                #     row[20] = '0'
+                # writer.writerow(row)
         return response
+
+
+def ExportStrays(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="users.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['SKU', 'Vendor', 'Price'])
+    for product in Product.objects.exclude(sale_price__gt=0).order_by('vendor', 'sku'):
+        skus = product.sku.strip("'")
+        skus = skus.split('+')
+        for sku in skus:
+            sku = sku.split('*')
+            vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
+            if not vp:
+                writer.writerow([sku[0], product.vendor.title])
+    return response

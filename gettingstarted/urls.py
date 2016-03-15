@@ -21,4 +21,5 @@ urlpatterns = patterns('',
     url(r'^update-shopify-prices/$', hello.views.UpdateShopifyPrices.as_view(), name='update-shopify-prices'),
     url(r'^clean/$', hello.views.CleanShopify.as_view(), name='clean-shopify'),
     url(r'^users/$', hello.views.ExportUsers, name='export-users'),
+    url(r'^stray/$', hello.views.ExportStrays, name='export-strays'),
 )
