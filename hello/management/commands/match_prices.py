@@ -45,8 +45,13 @@ class Command(BaseCommand):
                 else:
                     product.retail_price = cost_price * Decimal('3.25')
                 sale_price = product.retail_price * Decimal('0.7')
-                if sale_price > 200:
-                    sale_price = math.ceil(sale_price * 2) / 2 - 0.01
+                if sale_price <= 200:
+                    sale_price = math.ceil(sale_price) - 0.01
+                else:
+                    if sale_price % 100  < 50:
+                        sale_price = math.floor(sale_price / 100) * 100 + 49.99
+                    else:
+                        sale_price = math.ceil(sale_price / 100) * 100 - 0.01
                 product.sale_price = sale_price
                 product.save()
                 print '%s updated' % product.sku
