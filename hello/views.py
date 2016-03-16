@@ -482,7 +482,7 @@ class UploadPrices(UploadFormView):
                 elif vendor.title == "Mstar":
                     row[0] = row[0].replace(' ', '-')
                     price = price / Decimal("3.25")
-                
+
                 product, created = VendorProduct.objects.update_or_create(
                     sku=row[0].strip(), vendor=vendor,
                     defaults={'price': price})
@@ -494,16 +494,39 @@ class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[2000:]):
+        for idx, row in enumerate(data[3000:]):
             if row[13]:
                 if row[3]:
                     title = row[1]
                     product_type, created = ProductType.objects.get_or_create(title=row[4])
-                product, created = Product.objects.update_or_create(
-                    sku=row[13], vendor__title=row[3],
-                    defaults={'product_type': product_type, 'title': title})
+                    vendor = row[3].title()
+                try:
+                    product, created = Product.objects.update_or_create(
+                        sku=row[13], vendor__title=vendor,
+                        defaults={'product_type': product_type, 'title': title})
+                except:
+                    vendor, created = Vendor.objects.get_or_create(title=vendor)
+                    product, created = Product.objects.update_or_create(
+                        sku=row[13], vendor=vendor,
+                        defaults={'product_type': product_type, 'title': title})
+
         messages.success(self.request, 'Data Updated.')
         return super(UploadShopify, self).form_valid(form)
+
+
+class UploadSale(UploadFormView):
+    def form_valid(self, form):
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+        for idx, row in enumerate(data[1:]):
+            if row[13]:
+                if row[3]:
+                    vendor = row[3]
+                product, created = Product.objects.update_or_create(
+                    sku=row[13], vendor__title=vendor,
+                    defaults={'override_sale_price': Decimal(row[19])})
+        messages.success(self.request, 'Data Updated.')
+        return super(UploadSale, self).form_valid(form)
 
 
 def UpdateUsers():
@@ -592,16 +615,14 @@ class UpdateShopifyPrices(UploadFormView):
             if row[13]:
                 if row[3]:
                     vendor = row[3]
-                # if row[19] == '0' or row[19] == '0.00':
-                #     writer.writerow([row[13], row[3]])
-                # product = get_object_or_None(Product, sku=row[13].strip("'"), vendor__title=vendor)
-                # if product and product.retail_price:
-                #     row[19] = product.sale_price
-                #     row[20] = product.retail_price
-                # elif vendor != 'Global':
-                #     row[19] = '0'
-                #     row[20] = '0'
-                # writer.writerow(row)
+                product = get_object_or_None(Product, sku=row[13].strip("'"), vendor__title=vendor)
+                if product and product.retail_price:
+                    row[19] = product.override_sale_price or product.sale_price
+                    row[20] = product.retail_price
+                else:
+                    row[19] = '0'
+                    row[20] = '0'
+                writer.writerow(row)
         return response
 
 
