@@ -473,9 +473,19 @@ class UploadPrices(UploadFormView):
         vendor, created = Vendor.objects.get_or_create(title=self.request.POST.get('vendor'))
         for idx, row in enumerate(data[1:]):
             if row[0]:
+                price = Decimal(row[1].replace('$', ''))
+                if vendor.title == 'Klaussner':
+                    if row[2]:
+                        row[0] += '-%s' % row[2]
+                    row[0] = row[0].replace(' ', '-')
+
+                elif vendor.title == "Mstar":
+                    row[0] = row[0].replace(' ', '-')
+                    price = price / Decimal("3.25")
+                
                 product, created = VendorProduct.objects.update_or_create(
                     sku=row[0].strip(), vendor=vendor,
-                    defaults={'price': Decimal(row[1].replace('$', ''))})
+                    defaults={'price': price})
         messages.success(self.request, 'Data Updated.')
         return super(UploadPrices, self).form_valid(form)
 
