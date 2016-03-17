@@ -10,3 +10,4 @@ requests
 jsonfield
 django-annoying
 django-redis-cache
+celery
