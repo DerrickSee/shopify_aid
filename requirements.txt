@@ -9,3 +9,4 @@ django-taggit
 requests
 jsonfield
 django-annoying
+django-redis-cache

@@ -496,7 +496,7 @@ class UploadShopify(UploadFormView):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
         for idx, row in enumerate(data[1:]):
-            if row[13] and "@" not in row[13]:
+            if row[13]:
                 if row[3]:
                     title = row[1]
                     product_type, created = ProductType.objects.get_or_create(title=row[4])
@@ -638,8 +638,14 @@ def ExportStrays(request):
         skus = product.sku.strip("'")
         skus = skus.split('+')
         for sku in skus:
-            sku = sku.split('*')
-            vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
+            if "@" in sku:
+                sku = sku.split('@')
+                vendor = sku[1]
+                sku = sku[0].split('*')
+                vp = get_object_or_None(VendorProduct, vendor__title=vendor, sku=sku[0])
+            else:
+                sku = sku.split('*')
+                vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
             if not vp and sku[0] not in strays:
                 writer.writerow([sku[0], product.vendor.title, product.id])
                 strays.append(sku[0])
