@@ -523,9 +523,10 @@ class UploadSale(UploadFormView):
             if row[13]:
                 if row[3]:
                     vendor = row[3]
-                product, created = Product.objects.update_or_create(
-                    sku=row[13], vendor__title=vendor,
-                    defaults={'override_sale_price': Decimal(row[19])})
+                print row[13], vendor
+                product = Product.objects.get(sku=row[13], vendor__title=vendor)
+                product.override_sale_price = Decimal(row[19])
+                product.save()
         messages.success(self.request, 'Data Updated.')
         return super(UploadSale, self).form_valid(form)
 
