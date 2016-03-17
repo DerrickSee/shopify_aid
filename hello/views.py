@@ -631,7 +631,7 @@ def ExportStrays(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="users.csv"'
     writer = csv.writer(response)
-    writer.writerow(['SKU', 'Vendor', 'Price'])
+    writer.writerow(['SKU', 'Vendor', 'ID'])
     strays = []
     for product in Product.objects.exclude(Q(sale_price__gt=0) | Q(sale_price__isnull=False)).order_by('vendor', 'sku'):
         skus = product.sku.strip("'")
@@ -640,6 +640,6 @@ def ExportStrays(request):
             sku = sku.split('*')
             vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
             if not vp and sku[0] not in strays:
-                writer.writerow([sku[0], product.vendor.title])
+                writer.writerow([sku[0], product.vendor.title, product.id])
                 strays.append(sku[0])
     return response
