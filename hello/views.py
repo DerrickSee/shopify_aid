@@ -4,6 +4,7 @@ from decimal import Decimal
 import csv
 import requests
 import math
+from .tasks import add_update_product
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -474,9 +475,19 @@ class UploadPrices(UploadFormView):
         vendor, created = Vendor.objects.get_or_create(title=self.request.POST.get('vendor'))
         for idx, row in enumerate(data[1:]):
             if row[0] and row[1]:
+                price = Decimal(row[1].replace('$', ''))
+                if vendor.title == 'Klaussner':
+                    if row[2]:
+                        row[0] += '-%s' % row[2]
+                    row[0] = row[0].replace(' ', '-')
+
+                elif vendor.title == "Mstar":
+                    row[0] = row[0].replace(' ', '-')
+                    price = price / Decimal("3.25")
+
                 product, created = VendorProduct.objects.update_or_create(
                     sku=row[0].strip(), vendor=vendor,
-                    defaults={'price': Decimal(row[1].replace('$', ''))})
+                    defaults={'price': price})
         messages.success(self.request, 'Data Updated.')
         return super(UploadPrices, self).form_valid(form)
 
@@ -494,8 +505,25 @@ class UploadShopify(UploadFormView):
                 product, created = Product.objects.update_or_create(
                     sku=row[13], vendor=vendor,
                     defaults={'product_type': product_type, 'title': title})
+
         messages.success(self.request, 'Data Updated.')
         return super(UploadShopify, self).form_valid(form)
+
+
+class UploadSale(UploadFormView):
+    def form_valid(self, form):
+        data = [row for row in csv.reader(
+                form.cleaned_data['file'].read().splitlines())]
+        for idx, row in enumerate(data[1:]):
+            if row[13]:
+                if row[3]:
+                    vendor = row[3]
+                print row[13], vendor
+                product = Product.objects.get(sku=row[13], vendor__title=vendor)
+                product.override_sale_price = Decimal(row[19])
+                product.save()
+        messages.success(self.request, 'Data Updated.')
+        return super(UploadSale, self).form_valid(form)
 
 
 def UpdateUsers():
@@ -586,11 +614,11 @@ class UpdateShopifyPrices(UploadFormView):
                     vendor = row[3]
                 product = get_object_or_None(Product, sku=row[13].strip("'"), vendor__title=vendor)
                 if product and product.retail_price:
-                    row[19] = product.sale_price
+                    row[19] = product.override_sale_price or product.sale_price
                     row[20] = product.retail_price
                 else:
-                    row[19] = '0.00'
-                    row[20] = '0.00'
+                    row[19] = '0'
+                    row[20] = '0'
                 writer.writerow(row)
         return response
 
@@ -599,15 +627,20 @@ def ExportStrays(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="users.csv"'
     writer = csv.writer(response)
-    writer.writerow(['SKU', 'Vendor', 'Price'])
+
+    writer.writerow(['SKU', 'Vendor', 'ID'])
     strays = []
     for product in Product.objects.exclude(Q(sale_price__gt=0) | Q(sale_price__isnull=False)).order_by('vendor', 'sku'):
         skus = product.sku.strip("'")
         skus = skus.split('+')
         for sku in skus:
             sku = sku.split('*')
-            vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
+            if "@" in sku[0]:
+                sku = sku.split('@')
+                vp = get_object_or_None(VendorProduct, vendor__title=sku[1], sku=sku[0])
+            else:
+                vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
             if not vp and sku[0] not in strays:
-                writer.writerow([sku[0], product.vendor.title])
+                writer.writerow([sku[0], product.vendor.title, product.id])
                 strays.append(sku[0])
     return response

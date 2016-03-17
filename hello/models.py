@@ -57,8 +57,8 @@ class Product(TitleDescriptionModel):
     retail_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     sale_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     override_sale_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
-    tags = TaggableManager()
-    vendor_products = models.ManyToManyField(VendorProduct)
+    tags = TaggableManager(blank=True)
+    vendor_products = models.ManyToManyField(VendorProduct, null=True, blank=True)
 
     class Meta:
         app_label = 'hello'

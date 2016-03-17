@@ -17,7 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         upholstery = ProductType.objects.filter(title__in=('sofas', 'loveseats', 'accent chairs', 'sofa chairs', 'daybeds', 'living room sets', 'ottomans', 'recliners', 'sectionals', 'sofa chaises'))
         vendors = Vendor.objects.filter(title__in=('Ashley', 'United', 'Jonathan Louis', 'Istikbal'))
-        for vendor in Vendor.objects.all():
+        for vendor in Vendor.objects.exclude(title="Guardsman"):
             for product in Product.objects.filter(vendor=vendor):
                 skus = product.sku.strip("'")
                 skus = skus.split('+')
@@ -25,6 +25,7 @@ class Command(BaseCommand):
                 all_accounted = True
                 for sku in skus:
                     sku = sku.split('*')
+                    # @ before *
                     if '@' in sku[0]:
                         ss = sku[0].split('@')
                         vp = get_object_or_None(VendorProduct, vendor__title=ss[1], sku=ss[0])
@@ -45,13 +46,14 @@ class Command(BaseCommand):
                     else:
                         product.retail_price = cost_price * Decimal('3.25')
                     sale_price = product.retail_price * Decimal('0.7')
-                    if sale_price <= 200:
-                        sale_price = math.ceil(sale_price) - 0.01
-                    else:
-                        if sale_price % 100  < 50:
-                            sale_price = math.floor(sale_price / 100) * 100 + 49.99
-                        else:
-                            sale_price = math.ceil(sale_price / 100) * 100 - 0.01
+                    sale_price = math.ceil(sale_price / 10) * 10 - 0.01
+                    # if sale_price <= 200:
+                    #     sale_price = math.ceil(sale_price) - 0.01
+                    # else:
+                    #     if sale_price % 100  < 50:
+                    #         sale_price = math.floor(sale_price / 100) * 100 + 49.99
+                    #     else:
+                    #         sale_price = math.ceil(sale_price / 100) * 100 - 0.01
                     product.sale_price = sale_price
                     product.save()
                     print '%s updated' % product.sku
