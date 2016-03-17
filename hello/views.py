@@ -4,7 +4,7 @@ from decimal import Decimal
 import csv
 import requests
 import math
-import tasks
+from .tasks import add_update_product
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -496,9 +496,22 @@ class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[1:]):
+        for idx, row in enumerate(data[3000:]):
             if row[13]:
-                tasks.add_update_product(row)
+                if row[3]:
+                    title = row[1]
+                    product_type,created = ProductType.objects.get_or_create(title=row[4])
+                    vendor = row[3].title()
+                try:
+                    product, created = Product.objects.update_or_create(
+                        sku=row[13], vendor__title=vendor,
+                        defaults={'title': title})
+                except:
+                    vendor, created = Vendor.objects.get_or_create(title=vendor)
+                    product, created = Product.objects.update_or_create(
+                        sku=row[13], vendor=vendor,
+                        defaults={'product_type': product_type, 'title': title})
+        # add_update_product.delay(data)
         messages.success(self.request, 'Data Updated.')
         return super(UploadShopify, self).form_valid(form)
 
