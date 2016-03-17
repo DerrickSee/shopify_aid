@@ -13,6 +13,7 @@ from django.core.urlresolvers import reverse, reverse_lazy
 from django.utils.text import slugify
 from django.utils.timezone import now
 from django.contrib import messages
+from django.db.models import Q
 
 from annoying.functions import get_object_or_None
 
@@ -494,8 +495,8 @@ class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[3000:]):
-            if row[13]:
+        for idx, row in enumerate(data[1:]):
+            if row[13] and "@" not in row[13]:
                 if row[3]:
                     title = row[1]
                     product_type, created = ProductType.objects.get_or_create(title=row[4])
@@ -631,12 +632,14 @@ def ExportStrays(request):
     response['Content-Disposition'] = 'attachment; filename="users.csv"'
     writer = csv.writer(response)
     writer.writerow(['SKU', 'Vendor', 'Price'])
-    for product in Product.objects.exclude(sale_price__gt=0).order_by('vendor', 'sku'):
+    strays = []
+    for product in Product.objects.exclude(Q(sale_price__gt=0) | Q(sale_price__isnull=False)).order_by('vendor', 'sku'):
         skus = product.sku.strip("'")
         skus = skus.split('+')
         for sku in skus:
             sku = sku.split('*')
             vp = get_object_or_None(VendorProduct, vendor=product.vendor, sku=sku[0])
-            if not vp:
+            if not vp and sku[0] not in strays:
                 writer.writerow([sku[0], product.vendor.title])
+                strays.append(sku[0])
     return response
