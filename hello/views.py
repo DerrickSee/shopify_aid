@@ -496,7 +496,7 @@ class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[1:2000]):
+        for idx, row in enumerate(data[int(form.cleaned_data['start']):int(form.cleaned_data['end'])]):
             if row[13]:
                 if row[3]:
                     title = row[1]
