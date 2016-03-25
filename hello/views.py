@@ -616,9 +616,8 @@ class UpdateShopifyPrices(UploadFormView):
                 if product and product.retail_price:
                     row[19] = product.override_sale_price or product.sale_price
                     row[20] = product.retail_price
-                else:
-                    row[19] = '0'
-                    row[20] = '0'
+                if row[14] == "0":
+                    row[14] = "1"
                 writer.writerow(row)
         return response
 
