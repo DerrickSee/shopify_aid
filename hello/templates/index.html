@@ -22,6 +22,8 @@
       <form method="post" action="{% url 'upload-shopify' %}" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.errors }}
+        <input name="start" type="number" class="form-control">
+        <input name="end" type="number" class="form-control">
         <input name="file" type="file" class="form-control">
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>

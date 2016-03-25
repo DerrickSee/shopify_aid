@@ -496,8 +496,8 @@ class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[1:2000]):
-            if row[13]:
+        for idx, row in enumerate(data[int(self.request.POST['start']):int(self.request.POST['end'])]):
+            if row[13] and row:
                 if row[3]:
                     title = row[1]
                     product_type, created = ProductType.objects.get_or_create(title=row[4])
