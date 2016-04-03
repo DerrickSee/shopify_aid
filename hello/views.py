@@ -462,7 +462,8 @@ class UpdateAshley(UploadFormView):
             if row[0]:
                 product, created = VendorProduct.objects.update_or_create(
                     sku=row[0].strip(), vendor=vendor,
-                    defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1]})
+                    defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1],
+                              'upc': row[3].replace(' ', '')})
         messages.success(self.request, 'Data Updated.')
         return super(UpdateAshley, self).form_valid(form)
 
@@ -514,7 +515,11 @@ class UploadSale(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
+        arr = []
         for idx, row in enumerate(data[1:]):
+        #     if row[0] not in arr:
+        #         arr.append(row[0])
+        # arr.sort()
             if row[13]:
                 if row[3]:
                     vendor = row[3]
@@ -522,6 +527,7 @@ class UploadSale(UploadFormView):
                 product = Product.objects.get(sku=row[13], vendor__title=vendor)
                 product.override_sale_price = Decimal(row[19])
                 product.save()
+        # messages.success(self.request, arr)
         messages.success(self.request, 'Data Updated.')
         return super(UploadSale, self).form_valid(form)
 
