@@ -61,6 +61,7 @@ class Product(TitleDescriptionModel):
     tags = TaggableManager(blank=True)
     vendor_products = models.ManyToManyField(VendorProduct, null=True, blank=True)
     upc = models.CharField(max_length=12, blank=True)
+    google_category = models.CharField(max_length=100, blank=True)
 
     class Meta:
         app_label = 'hello'

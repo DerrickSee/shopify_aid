@@ -1,20 +1,3 @@
-
-
-GOOGLE_CATEGORIES = [
-    ['loveseats', 'furniture > sofas'],
-    ['sofa chairs', 'furniture > chairs > arm chairs, recliners & sleeper chairs'],
-    ['accent chairs', 'furniture > chairs > arm chairs, recliners & sleeper chairs'],
-    ['sectionals', 'furniture > sofas'],
-    ['chaises', 'furniture > chairs > chaises'],
-    ['recliners', 'furniture > chairs > chaises'],
-    ['chaises', 'furniture > chairs > chaises'],
-    ['nightstands', 'furniture > tables > nightstands'],
-    ['nightstands', 'furniture > tables > nightstands'],
-    ['nightstands', 'furniture > tables > nightstands'],
-
-    ['nightstands', 'furniture > tables > nightstands'],
-]
-
 GOOGLE_CATEGORIES = [
     ['accent chairs', 'furniture > chairs > arm chairs, recliners & sleeper chairs'],
     ['beddings', 'home & garden > linens & bedding > bedding'],
@@ -65,9 +48,9 @@ GOOGLE_CATEGORIES = [
     ['sofa chaises', 'furniture > chairs > chaises'],
     ['sofas', 'furniture > sofas'],
     ['stools', 'furniture > chairs > table & bar stools'],
-    ['table lamps', ''],
-    ['throw pillows', ],
-    ['tv stands', ],
-    ['wall arts', ],
-    ['wall units', ],
+    ['table lamps', 'home & garden > lighting > lamps'],
+    ['throw pillows', 'home & garden > decor > throw pillows'],
+    ['tv stands', 'furniture > entertainment centers & tv stands'],
+    ['wall arts', 'home & garden > decor > artwork > posters, prints & visual artwork'],
+    ['wall units', 'furniture > shelving > wall shelves & ledges'],
 ]

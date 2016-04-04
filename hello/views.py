@@ -20,6 +20,7 @@ from annoying.functions import get_object_or_None
 
 from .names import *
 from .models import *
+from .constants import GOOGLE_CATEGORIES
 
 # Create your views here.
 def index(request):
@@ -484,8 +485,10 @@ class CleanShopify(UploadFormView):
                 form.cleaned_data['file'].read().splitlines())]
         writer.writerow(data[0])
         for idx, row in enumerate(data[1:]):
-            if row[1] and row[13]:
-                row[6] = 'true' if row[24] else 'false'
+            # if row[1] and row[13]:
+            #     row[6] = 'true' if row[24] else 'false'
+            if row[23] and len(row[23]) == 11:
+                row[23] = "0%s" % row[23]
             writer.writerow(row)
         return response
 
@@ -553,10 +556,9 @@ class UploadSale(UploadFormView):
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="users.csv"'
         writer = csv.writer(response)
-
-        data_backup = [row for row in csv.reader(
+        data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        arr = []
+        # arr = []
         for idx, row in enumerate(data[1:]):
         #     if row[0] not in arr:
         #         arr.append(row[0])
@@ -564,7 +566,6 @@ class UploadSale(UploadFormView):
             if row[13]:
                 if row[3]:
                     vendor = row[3]
-                print row[13], vendor
                 product = Product.objects.get(sku=row[13], vendor__title=vendor)
                 product.override_sale_price = Decimal(row[19])
                 product.save()
@@ -665,7 +666,11 @@ class UpdateShopifyPrices(UploadFormView):
                     row[20] = product.retail_price
                 if row[14] == "0":
                     row[14] = "1"
-
+                row[23] = row[27] = "%s" % product.upc
+                row[30] = product.google_category
+                row[33] = product.product_type.title
+                row[34] = product.product_type.title
+                row[35] = 'new'
                 writer.writerow(row)
         return response
 

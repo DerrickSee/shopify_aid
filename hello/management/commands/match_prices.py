@@ -9,6 +9,7 @@ from django.utils.timezone import now
 from annoying.functions import get_object_or_None
 
 from hello.models import *
+from hello.constants import GOOGLE_CATEGORIES
 
 
 class Command(BaseCommand):
@@ -24,7 +25,7 @@ class Command(BaseCommand):
                 skus = skus.split('+')
                 cost_price = Decimal('0.00')
                 all_accounted = True
-                for sku in skus:
+                for idx, sku in enumerate(skus):
                     sku = sku.split('*')
                     # @ before *
                     if '@' in sku[0]:
@@ -38,8 +39,14 @@ class Command(BaseCommand):
                         qty = '1'
                     if vp:
                         cost_price += vp.price * Decimal(qty)
+                        if idx == 0:
+                            product.upc = vp.upc
+                            for tt in GOOGLE_CATEGORIES:
+                                if product.product_type.title == tt[0]:
+                                    product.google_category = tt[1]
                     else:
                         all_accounted = False
+
                 if all_accounted:
                     product.cost_price = cost_price
                     if product.product_type in upholstery and product.vendor in vendors:
