@@ -33,6 +33,7 @@ class VendorProduct(TimeStampedModel):
     title = models.CharField(max_length=100, blank=True)
     vendor = models.ForeignKey(Vendor)
     sku = models.CharField(max_length=100)
+    upc = models.CharField(max_length=12, blank=True)
     price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
 
     class Meta:
@@ -59,6 +60,7 @@ class Product(TitleDescriptionModel):
     override_sale_price = models.DecimalField(null=True, blank=True, max_digits=12, decimal_places=2)
     tags = TaggableManager(blank=True)
     vendor_products = models.ManyToManyField(VendorProduct, null=True, blank=True)
+    upc = models.CharField(max_length=12, blank=True)
 
     class Meta:
         app_label = 'hello'

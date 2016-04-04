@@ -499,7 +499,8 @@ class UpdateAshley(UploadFormView):
             if row[0]:
                 product, created = VendorProduct.objects.update_or_create(
                     sku=row[0].strip(), vendor=vendor,
-                    defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1]})
+                    defaults={'price': Decimal(row[4].replace('$', '')), 'title': row[1],
+                              'upc': row[3].replace(' ', '')})
         messages.success(self.request, 'Data Updated.')
         return super(UpdateAshley, self).form_valid(form)
 
@@ -533,8 +534,8 @@ class UploadShopify(UploadFormView):
     def form_valid(self, form):
         data = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[int(form.cleaned_data['start']):int(form.cleaned_data['end'])]):
-            if row[13]:
+        for idx, row in enumerate(data[int(self.request.POST['start']):int(self.request.POST['end'])]):
+            if row[13] and row:
                 if row[3]:
                     title = row[1]
                     product_type, created = ProductType.objects.get_or_create(title=row[4])
@@ -555,42 +556,21 @@ class UploadSale(UploadFormView):
 
         data_backup = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        data_current = [row for row in csv.reader(
-                form.cleaned_data['current'].read().splitlines())]
-        data_deleted = [row for row in csv.reader(
-                form.cleaned_data['deleted'].read().splitlines())]
-
-        writer.writerow(data_backup[0])
-
-        rows = []
-        for row in data_backup[1:]:
-            add = True
-            for r in data_current[1:]:
-                if r[0][:-2] == row[0]:
-                    add = False
-                    break
-            if add:
-                rows.append(row)
-
-        images = []
-        for row2 in data_deleted[1:]:
-            image2 = row2[1].split('?')
-            image2 = image2[0].split('/')
-            image2 = image2[-1]
-            images.append([row2[1], image2])
-
-        print images
-
-        for row in rows:
-            if row[24] or row[42]:
-                for image in images:
-                    if image[1] in row[24]:
-                        row[24] = image[0]
-                    if image[1] in row[42]:
-                        row[42] = image[0]
-            writer.writerow(row)
-
-        return response
+        arr = []
+        for idx, row in enumerate(data[1:]):
+        #     if row[0] not in arr:
+        #         arr.append(row[0])
+        # arr.sort()
+            if row[13]:
+                if row[3]:
+                    vendor = row[3]
+                print row[13], vendor
+                product = Product.objects.get(sku=row[13], vendor__title=vendor)
+                product.override_sale_price = Decimal(row[19])
+                product.save()
+        # messages.success(self.request, arr)
+        messages.success(self.request, 'Data Updated.')
+        return super(UploadSale, self).form_valid(form)
 
 
 def UpdateUsers():
@@ -683,9 +663,9 @@ class UpdateShopifyPrices(UploadFormView):
                 if product and product.retail_price:
                     row[19] = product.override_sale_price or product.sale_price
                     row[20] = product.retail_price
-                else:
-                    row[19] = '0'
-                    row[20] = '0'
+                if row[14] == "0":
+                    row[14] = "1"
+
                 writer.writerow(row)
         return response
 

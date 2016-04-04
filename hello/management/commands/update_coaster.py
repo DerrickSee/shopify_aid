@@ -18,6 +18,9 @@ class Command(BaseCommand):
         headers = {'keycode': 'ED10E97E26A24442B4526F74D7'}
         response = requests.get(url, headers=headers)
         vd.prices = response.json()
+        url = "http://api.coasteramer.com/api/product/GetProductList"
+        response = requests.get(url, headers=headers)
+        vd.products = response.json()
         vd.save()
 
         for obj in vd.prices:

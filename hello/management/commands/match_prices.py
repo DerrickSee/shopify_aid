@@ -17,6 +17,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         upholstery = ProductType.objects.filter(title__in=('sofas', 'loveseats', 'accent chairs', 'sofa chairs', 'daybeds', 'living room sets', 'ottomans', 'recliners', 'sectionals', 'sofa chaises'))
         vendors = Vendor.objects.filter(title__in=('Ashley', 'United', 'Jonathan Louis', 'Istikbal'))
+        mattresses = ProductType.objects.filter(title__in=('mattresses', 'box springs'))
         for vendor in Vendor.objects.exclude(title="Guardsman"):
             for product in Product.objects.filter(vendor=vendor):
                 skus = product.sku.strip("'")
@@ -42,10 +43,14 @@ class Command(BaseCommand):
                 if all_accounted:
                     product.cost_price = cost_price
                     if product.product_type in upholstery and product.vendor in vendors:
-                        product.retail_price = cost_price * Decimal('3.57')
+                        retail_price = cost_price * Decimal('3.57')
                     else:
-                        product.retail_price = cost_price * Decimal('3.25')
-                    sale_price = product.retail_price * Decimal('0.7')
+                        retail_price = cost_price * Decimal('3.25')
+                    if product.product_type in mattresses:
+                        sale_price = retail_price * Decimal('0.5')
+                    else:
+                        sale_price = retail_price * Decimal('0.7')
+                    retail_price = math.ceil(retail_price / 10) * 10 - 0.01
                     sale_price = math.ceil(sale_price / 10) * 10 - 0.01
                     # if sale_price <= 200:
                     #     sale_price = math.ceil(sale_price) - 0.01
@@ -54,6 +59,7 @@ class Command(BaseCommand):
                     #         sale_price = math.floor(sale_price / 100) * 100 + 49.99
                     #     else:
                     #         sale_price = math.ceil(sale_price / 100) * 100 - 0.01
+                    product.retail_price = retail_price
                     product.sale_price = sale_price
                     product.save()
                     print '%s updated' % product.sku

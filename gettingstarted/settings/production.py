@@ -2,10 +2,7 @@ import os
 from .base import *
 import psycopg2
 
-try:
-    from urllib.parse import urlparse, uses_netloc
-except ImportError:
-    from urlparse import urlparse, uses_netloc
+import urlparse
 
 
 # Parse database configuration from $DATABASE_URL
