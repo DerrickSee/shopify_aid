@@ -624,6 +624,7 @@ class UpdateShopifyPrices(UploadFormView):
                     row[20] = product.retail_price
                 if row[14] == "0":
                     row[14] = "1"
+                
                 writer.writerow(row)
         return response
 
