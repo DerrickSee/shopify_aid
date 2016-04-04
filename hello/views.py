@@ -31,6 +31,8 @@ def index(request):
 
 class FileForm(forms.Form):
     file = forms.FileField()
+    current = forms.FileField(required=False)
+    deleted = forms.FileField(required=False)
 
 
 class UploadFormView(FormView):
@@ -39,7 +41,7 @@ class UploadFormView(FormView):
     template_name = "index.html"
 
 
-class AshleyTableProcess(UploadFormView):
+class AshleyProcess(UploadFormView):
 
     def form_valid(self, form):
         response = HttpResponse(content_type='text/csv')
@@ -53,20 +55,55 @@ class AshleyTableProcess(UploadFormView):
                          'Variant Inventory Policy', 'Variant Fulfillment Service', 'Variant Price',
                          'Variant Compare At Price', 'Variant Requires Shipping', 'Variant Taxable',
                          'Variant Barcode', 'Image Src', 'Image Alt Text',])
+        handles = []
         for idx, row in enumerate(data[2:]):
             if row[0]:
-                tags = row[2]
-                typ = 'mattress'
-                vendor = row[0].title()
+                tags = 'new'
+                t = row[8].lower()
+                if 'tv stand' in t:
+                    typ = 'tv stands'
+                elif 'pier' in t:
+                    typ = 'piers'
+                elif 'credenza' in t:
+                    typ = 'credenzas'
+                elif 'bridge' in t:
+                    typ = 'bridges'
+                elif 'fireplace insert' in t:
+                    typ = 'fireplace inserts'
+
+                # vendor =
                 name = row[1]
-                title = "%s %s %s" % (name, tags,typ)
+
+                title = name.replace('lg', 'large').replace('xl', 'extra large')
+                desc = ('large', 'medium', 'left', 'right', 'extra large')
+                for d in desc:
+                    if d in t:
+                        title += ' %s' % d
+                title += ' %s' % typ[:-1]
+
 
                 handle = slugify(title)
-                body = "<p></p><p><strong>DIMENSIONS</strong></p>"
+                if handle in handles:
+                    ix = 0
+                    for h in handles:
+                        if handle in h:
+                            ix += 1
+                    handle += '-%s' % ix
+
+                handles.append(handle)
+                row[9].decode('utf-8')
+                if row[9].decode('utf-8'):
+                    content = row[9].decode('utf-8')
+                elif row[9] == '' and name not in content:
+                    content = ''
+
+                body = "<p>%s</p><p><strong>DIMENSIONS</strong></p>" % content
+                if row[11]:
+                    body += '<p>%s" W x %s" D x %s" H</p>' %(row[11], row[12], row[13])
                 wholesale = Decimal(row[4].replace('$', '').strip())
                 compare = wholesale * Decimal('3.25')
                 price = compare * Decimal('0.7')
-                writer.writerow([handle, title.title(), body.strip().encode('ascii','ignore'), vendor, typ, tags, "FALSE",
+                writer.writerow([handle, title.title().replace('Tv', 'TV'), body.strip().encode('ascii','ignore'), "Ashley", typ, tags, "FALSE",
                                  "Color" if row[2] else 'Title', row[2] if row[2] else 'Default Title', "Sleeper" if row[10] else '', row[10] if row[10] else "",
                                  "", "", row[0], "0", "", "0", "continue", "manual", str(price.quantize(Decimal('.01'))),
                                  str(compare.quantize(Decimal('.01'))), "TRUE", "TRUE"])
@@ -512,18 +549,48 @@ class UploadShopify(UploadFormView):
 
 class UploadSale(UploadFormView):
     def form_valid(self, form):
-        data = [row for row in csv.reader(
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="users.csv"'
+        writer = csv.writer(response)
+
+        data_backup = [row for row in csv.reader(
                 form.cleaned_data['file'].read().splitlines())]
-        for idx, row in enumerate(data[1:]):
-            if row[13]:
-                if row[3]:
-                    vendor = row[3]
-                print row[13], vendor
-                product = Product.objects.get(sku=row[13], vendor__title=vendor)
-                product.override_sale_price = Decimal(row[19])
-                product.save()
-        messages.success(self.request, 'Data Updated.')
-        return super(UploadSale, self).form_valid(form)
+        data_current = [row for row in csv.reader(
+                form.cleaned_data['current'].read().splitlines())]
+        data_deleted = [row for row in csv.reader(
+                form.cleaned_data['deleted'].read().splitlines())]
+
+        writer.writerow(data_backup[0])
+
+        rows = []
+        for row in data_backup[1:]:
+            add = True
+            for r in data_current[1:]:
+                if r[0][:-2] == row[0]:
+                    add = False
+                    break
+            if add:
+                rows.append(row)
+
+        images = []
+        for row2 in data_deleted[1:]:
+            image2 = row2[1].split('?')
+            image2 = image2[0].split('/')
+            image2 = image2[-1]
+            images.append([row2[1], image2])
+
+        print images
+
+        for row in rows:
+            if row[24] or row[42]:
+                for image in images:
+                    if image[1] in row[24]:
+                        row[24] = image[0]
+                    if image[1] in row[42]:
+                        row[42] = image[0]
+            writer.writerow(row)
+
+        return response
 
 
 def UpdateUsers():
